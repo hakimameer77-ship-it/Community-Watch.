@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Watch - Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>Community Watch</h1>
+                <p>Crime Reporting System</p>
+                <p class="subtitle">Taman Tambun Perdana 1, Durian Tunggal, Melaka</p>
+            </div>
+
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="citizen">Citizen Login</button>
+                <button class="tab-btn" data-tab="staff">Staff Login</button>
+            </div>
+
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="password-input">
+                        <input type="password" id="password" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword('password')">👁️</button>
+                    </div>
+                </div>
+
+                <div class="error-message" id="errorMessage"></div>
+
+                <button type="submit" class="btn btn-primary">Login</button>
+
+                <div class="login-footer">
+                    <p>Don't have an account? <a href="register.html">Register here</a></p>
+                </div>
+            </form>
+
+            <div class="demo-credentials">
+                <h3>Demo Credentials</h3>
+                <div class="credentials-grid" id="demoCredentials">
+                    <div class="credential-item">
+                        <strong>Citizen:</strong><br>
+                        jane@example.com<br>
+                        Password123!
+                    </div>
+                    <div class="credential-item">
+                        <strong>Authority:</strong><br>
+                        ahmad@authority.gov<br>
+                        Admin123!
+                    </div>
+                    <div class="credential-item">
+                        <strong>Admin:</strong><br>
+                        admin@authority.gov<br>
+                        Admin123!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="database.js"></script>
+    <script src="auth.js"></script>
+    <script src="validation.js"></script>
+    <script>
+        let currentUserType = 'citizen';
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentUserType = btn.dataset.tab;
+            });
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMessage');
+
+            const result = login(email, password, currentUserType);
+
+            if (result.success) {
+                if (result.user.role === 'citizen') {
+                    window.location.href = 'citizen-dashboard.html';
+                } else {
+                    window.location.href = 'staff-dashboard.html';
+                }
+            } else {
+                errorMsg.textContent = result.message;
+                errorMsg.style.display = 'block';
+            }
+        });
+
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+    </script>
+</body>
+</html>
