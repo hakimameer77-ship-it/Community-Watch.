@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Watch - Register</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card register-card">
+            <div class="login-header">
+                <h1>Community Watch</h1>
+                <p>Citizen Registration</p>
+            </div>
+
+            <form id="registerForm" class="login-form">
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="ic">IC Number (YYMMDD-PB-####) *</label>
+                    <input type="text" id="ic" placeholder="920101-14-5678" required>
+                    <small class="form-hint">Format: YYMMDD-PB-####</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input type="tel" id="phone" placeholder="0123456789" required>
+                    <small class="form-hint">Malaysian mobile: 01XXXXXXXXX</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Address *</label>
+                    <textarea id="address" rows="3" placeholder="No, Jalan, Taman, Durian Tunggal, Melaka" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password *</label>
+                    <div class="password-input">
+                        <input type="password" id="password" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword('password')">👁️</button>
+                    </div>
+                    <div id="passwordStrength" class="password-strength"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password *</label>
+                    <div class="password-input">
+                        <input type="password" id="confirmPassword" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword')">👁️</button>
+                    </div>
+                </div>
+
+                <div class="password-requirements">
+                    <p><strong>Password must contain:</strong></p>
+                    <ul>
+                        <li id="req-length">At least 8 characters</li>
+                        <li id="req-upper">One uppercase letter</li>
+                        <li id="req-lower">One lowercase letter</li>
+                        <li id="req-number">One number</li>
+                        <li id="req-special">One special character (!@#$%^&*)</li>
+                    </ul>
+                </div>
+
+                <div class="error-message" id="errorMessage"></div>
+                <div class="success-message" id="successMessage"></div>
+
+                <button type="submit" class="btn btn-primary">Register</button>
+
+                <div class="login-footer">
+                    <p>Already have an account? <a href="index.html">Login here</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="database.js"></script>
+    <script src="auth.js"></script>
+    <script src="validation.js"></script>
+    <script>
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        document.getElementById('password').addEventListener('input', (e) => {
+            const password = e.target.value;
+            const result = validatePassword(password);
+            const strengthDiv = document.getElementById('passwordStrength');
+
+            if (password.length === 0) {
+                strengthDiv.textContent = '';
+                strengthDiv.className = 'password-strength';
+                return;
+            }
+
+            if (result.valid) {
+                strengthDiv.textContent = '✓ Strong password';
+                strengthDiv.className = 'password-strength strong';
+            } else {
+                strengthDiv.textContent = '✗ ' + result.message;
+                strengthDiv.className = 'password-strength weak';
+            }
+
+            document.getElementById('req-length').className = password.length >= 8 ? 'valid' : '';
+            document.getElementById('req-upper').className = /[A-Z]/.test(password) ? 'valid' : '';
+            document.getElementById('req-lower').className = /[a-z]/.test(password) ? 'valid' : '';
+            document.getElementById('req-number').className = /[0-9]/.test(password) ? 'valid' : '';
+            document.getElementById('req-special').className = /[!@#$%^&*(),.?":{}|<>]/.test(password) ? 'valid' : '';
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const ic = document.getElementById('ic').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+            const address = document.getElementById('address').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            const errorMsg = document.getElementById('errorMessage');
+            const successMsg = document.getElementById('successMessage');
+
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+
+            if (!validateIC(ic)) {
+                errorMsg.textContent = 'Invalid IC number format. Use YYMMDD-PB-####';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            if (!validatePhoneNumber(phone)) {
+                errorMsg.textContent = 'Invalid phone number. Use Malaysian mobile format (01XXXXXXXXX)';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            const passwordValidation = validatePassword(password);
+            if (!passwordValidation.valid) {
+                errorMsg.textContent = passwordValidation.message;
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                errorMsg.textContent = 'Passwords do not match';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            const result = register(email, password, name, ic, phone, address);
+
+            if (result.success) {
+                successMsg.textContent = 'Registration successful! Redirecting to login...';
+                successMsg.style.display = 'block';
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+            } else {
+                errorMsg.textContent = result.message;
+                errorMsg.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
