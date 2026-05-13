@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Watch - Staff Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Community Watch</h2>
+                <button class="close-sidebar" onclick="toggleSidebar()">×</button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-link active" data-page="overview">📊 Overview</a>
+                <a href="#" class="nav-link" data-page="reports">📋 All Reports</a>
+                <a href="#" class="nav-link admin-only" data-page="authorities" style="display:none;">👥 Manage Authorities</a>
+                <a href="#" class="nav-link" data-page="map">🗺️ Incident Map</a>
+                <a href="#" class="nav-link" data-page="analytics">📈 Analytics</a>
+                <a href="#" class="nav-link" data-page="profile">👤 My Profile</a>
+                <a href="#" class="nav-link" onclick="logout()">🚪 Logout</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="topbar">
+                <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                <div class="user-info">
+                    <span id="userName"></span> (<span id="userRole"></span>)
+                </div>
+            </div>
+
+            <!-- Overview Page -->
+            <div id="page-overview" class="page active">
+                <h1>Dashboard Overview</h1>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Reports</h3>
+                        <p class="stat-number" id="totalReports">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Pending</h3>
+                        <p class="stat-number" id="pendingReports">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>In Progress</h3>
+                        <p class="stat-number" id="inProgressReports">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Resolved</h3>
+                        <p class="stat-number" id="resolvedReports">0</p>
+                    </div>
+                </div>
+                <div id="recentReports"></div>
+            </div>
+
+            <!-- Reports Page -->
+            <div id="page-reports" class="page">
+                <h1>All Reports</h1>
+                <div id="allReportsContainer"></div>
+            </div>
+
+            <!-- Authorities Page (Admin Only) -->
+            <div id="page-authorities" class="page">
+                <h1>Manage Authorities</h1>
+                <button class="btn btn-primary" onclick="showAddAuthorityModal()">+ Add Authority</button>
+                <div id="authoritiesContainer"></div>
+            </div>
+
+            <!-- Map Page -->
+            <div id="page-map" class="page">
+                <h1>Incident Hotspot Map</h1>
+                <p>Taman Tambun Perdana 1, Durian Tunggal, Melaka</p>
+                <div class="map-container">
+                    <div class="map-placeholder">
+                        <p>📍 Map View</p>
+                        <p>Incident Hotspots</p>
+                    </div>
+                    <div class="hotspot-list" id="staffHotspotList"></div>
+                </div>
+            </div>
+
+            <!-- Analytics Page -->
+            <div id="page-analytics" class="page">
+                <h1>Analytics</h1>
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h3>Reports by Type</h3>
+                        <canvas id="typeChart"></canvas>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>Reports by Priority</h3>
+                        <canvas id="priorityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Page -->
+            <div id="page-profile" class="page">
+                <h1>My Profile</h1>
+                <form id="staffProfileForm">
+                    <div class="form-group">
+                        <label>Name (Read Only)</label>
+                        <input type="text" id="staffName" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Email (Read Only)</label>
+                        <input type="email" id="staffEmail" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Role (Read Only)</label>
+                        <input type="text" id="staffRoleInput" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="staffPhone">Phone Number</label>
+                        <input type="tel" id="staffPhone">
+                    </div>
+                    <div class="form-group">
+                        <label for="staffDept">Department</label>
+                        <input type="text" id="staffDept">
+                    </div>
+                    <div class="form-group">
+                        <label for="staffPosition">Position</label>
+                        <input type="text" id="staffPosition">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                </form>
+
+                <h2 style="margin-top: 2rem;">Change Password</h2>
+                <form id="staffPasswordForm">
+                    <div class="form-group">
+                        <label for="staffCurrentPassword">Current Password</label>
+                        <input type="password" id="staffCurrentPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="staffNewPassword">New Password</label>
+                        <input type="password" id="staffNewPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="staffConfirmPassword">Confirm New Password</label>
+                        <input type="password" id="staffConfirmPassword" required>
+                    </div>
+                    <div class="error-message" id="staffPasswordError"></div>
+                    <div class="success-message" id="staffPasswordSuccess"></div>
+                    <button type="submit" class="btn btn-primary">Change Password</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="actionModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('actionModal')">&times;</span>
+            <h2>Take Action on Report</h2>
+            <form id="actionForm">
+                <input type="hidden" id="actionReportId">
+                <div class="form-group">
+                    <label for="actionDesc">Action Description *</label>
+                    <textarea id="actionDesc" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="actionStatus">Status *</label>
+                    <select id="actionStatus" required>
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Action</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="addAuthorityModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addAuthorityModal')">&times;</span>
+            <h2>Add New Authority</h2>
+            <form id="addAuthorityForm">
+                <div class="form-group">
+                    <label for="authName">Name *</label>
+                    <input type="text" id="authName" required>
+                </div>
+                <div class="form-group">
+                    <label for="authEmail">Email *</label>
+                    <input type="email" id="authEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="authPhone">Phone Number *</label>
+                    <input type="tel" id="authPhone" required>
+                </div>
+                <div class="form-group">
+                    <label for="authDept">Department</label>
+                    <input type="text" id="authDept">
+                </div>
+                <div class="form-group">
+                    <label for="authPosition">Position</label>
+                    <input type="text" id="authPosition">
+                </div>
+                <div class="form-group">
+                    <label for="authPassword">Password *</label>
+                    <input type="password" id="authPassword" required>
+                </div>
+                <div class="error-message" id="addAuthError"></div>
+                <button type="submit" class="btn btn-primary">Add Authority</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="database.js"></script>
+    <script src="auth.js"></script>
+    <script src="validation.js"></script>
+    <script src="staff-dashboard.js"></script>
+</body>
+</html>
